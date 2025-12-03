@@ -23,6 +23,7 @@ def load_world(path):
 
     for y in range(height):
         for x in range(min(len(rows[y]), width)):
+            # Tokenizing light/dark values
             grid[y, x] = 100 if rows[y][x] == "#" else 0
 
     return resolution, width, height, grid
