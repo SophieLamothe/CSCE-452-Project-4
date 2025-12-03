@@ -1,4 +1,6 @@
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
+from glob import glob
+import os
 
 package_name = 'tile_localization'
 
@@ -7,19 +9,15 @@ setup(
     version='0.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
+        # Register package with ament index
         ('share/ament_index/resource_index/packages',
-        ['resource/' + package_name]),
+            ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/worlds', [
-            'worlds/cave.world',
-            'worlds/light.world',
-            'worlds/dark.world',
-            'worlds/code.world',
-            'worlds/windy.world'
-        ]),
-        ('share/' + package_name + '/launch', [
-            'launch/p4.launch.py'
-        ]),
+
+        (os.path.join('share', package_name, 'launch'), 
+            glob('launch/*.launch.py')),
+        (os.path.join('share', package_name, 'worlds'), 
+            glob('worlds/*.world')),
     ],
 
     install_requires=['setuptools'],
