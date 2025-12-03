@@ -9,20 +9,20 @@ def load_world(path):
     map_text = data["map"]
 
     rows = [
-        list(row.strip())
+        list(row.rstrip())
         for row in map_text.splitlines()
         if row.strip() != ""
     ]
 
-    rows.reverse()  # bottom row first
+    rows.reverse()
 
     height = len(rows)
-    width = len(rows[0])
+    width = max(len(row) for row in rows) if rows else 0
 
     grid = np.zeros((height, width), dtype=np.int8)
 
     for y in range(height):
-        for x in range(width):
+        for x in range(min(len(rows[y]), width)):
             grid[y, x] = 100 if rows[y][x] == "#" else 0
 
     return resolution, width, height, grid
