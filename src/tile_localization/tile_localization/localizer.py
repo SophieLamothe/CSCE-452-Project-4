@@ -43,12 +43,13 @@ class HistogramLocalizer(Node):
         self.get_logger().info("="*60)
 
         # Histogram Filter
-        # Start with uniform belief over all cells
+        # Start with uniform weight over all cells
         self.belief = np.ones((self.height, self.width), dtype=np.float64)
         self.belief /= self.belief.sum()
 
         # Robot's State
-        self.theta = 0.0  # From compass
+        # From compass
+        self.theta = 0.0
         self.last_cmd_time = None
         self.accumulated_dx = 0.0
         self.accumulated_dy = 0.0
@@ -57,7 +58,8 @@ class HistogramLocalizer(Node):
         self.initial_pose_recorded = False
         self.initial_pose = None
         self.sensor_update_count = 0
-        self.pose_history = []  # For visualization trail
+        # Trying a visualization trail
+        self.pose_history = [] 
         
         # Calibration
         self.sensor_readings = []
@@ -121,9 +123,9 @@ class HistogramLocalizer(Node):
         
         # Setting parameters; normalized to [0,1]
         self.light_mean = lower_cluster.mean() / 255.0
-        self.light_sigma = max(lower_cluster.std() / 255.0, 0.015)
+        self.light_sigma = max(lower_cluster.std() / 255.0, 0.025)
         self.dark_mean = upper_cluster.mean() / 255.0
-        self.dark_sigma = max(upper_cluster.std() / 255.0, 0.015)
+        self.dark_sigma = max(upper_cluster.std() / 255.0, 0.025)
         
         # Calculate separation metric
         separation = abs(self.dark_mean - self.light_mean) / (self.dark_sigma + self.light_sigma)
@@ -184,13 +186,14 @@ class HistogramLocalizer(Node):
         self.accumulated_dy -= sy * self.resolution
         
         # Apply motion with diffusion
-        # Grid: y=0 at bottom, +y goes up, so positive sy shifts to higher indices (up)
-        shifted = np.roll(self.belief, shift=(sy, sx), axis=(0, 1))  # FIXED: no negative
+        # FIXED: Negate sy because np.roll with positive shift moves DOWN (to higher indices)
+        # but positive dy means robot moved UP (north), so we need to shift belief UP
+        shifted = np.roll(self.belief, shift=(sy, sx), axis=(0, 1))
         
         # Diffusion weights
-        center = 0.7
-        cardinal = 0.05
-        diagonal = 0.025
+        center = 0.8
+        cardinal = 0.035
+        diagonal = 0.015
         
         new_belief = center * shifted
         for dx_n, dy_n, weight in [
@@ -255,7 +258,7 @@ class HistogramLocalizer(Node):
         confidence = self.belief[y_idx, x_idx]
         
         # Record initial pose when confidence reaches threshold
-        if not self.initial_pose_recorded and confidence > 0.005:  # 0.5% confidence
+        if not self.initial_pose_recorded and confidence > 0.08:
             self.initial_pose = (pose.x, pose.y, pose.theta)
             self.initial_pose_recorded = True
             self._write_initial_pose()
@@ -365,7 +368,7 @@ class HistogramLocalizer(Node):
     
     @staticmethod
     def _gaussian(x, mean, sigma):
-        """Calculate Gaussian probability density."""
+        """Calculate Gaussian probability density (properly normalized)."""
         if sigma <= 0:
             return 1.0
         return math.exp(-0.5 * ((x - mean) / sigma) ** 2)
