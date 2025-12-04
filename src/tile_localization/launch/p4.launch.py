@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -9,11 +9,17 @@ def generate_launch_description():
     world_file_arg = DeclareLaunchArgument(
         'world_file',
         default_value='cave.world',
-        description='Name of the world file to load (e.g., cave.world, light.world)'
+    )
+    
+    # Argument for bag file name
+    bag_file_arg = DeclareLaunchArgument(
+        'bag_file',
+        default_value='localization_data',
     )
     
     return LaunchDescription([
         world_file_arg,
+        bag_file_arg,
         
         Node(
             package="tile_localization",
@@ -29,5 +35,12 @@ def generate_launch_description():
             name="localizer",
             parameters=[{'world_file': LaunchConfiguration('world_file')}],
             output="screen",
+        ),
+        
+        # Record all topics
+        ExecuteProcess(
+            cmd=['ros2', 'bag', 'record', '-a',
+                 '-o', LaunchConfiguration('bag_file')],
+            output='screen'
         ),
     ])
