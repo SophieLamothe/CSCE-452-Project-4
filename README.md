@@ -4,7 +4,7 @@
 - cd CSCE-452-Project-4/
 - colcon build
 - source install/setup.bash
-- ros2 launch tile_localization p4.launch.py world_file:=windy.world
+- ros2 launch tile_localization p4.launch.py world_file:=windy.world bag_file:=20-11
 
 ## Rviz2 Setup
 - * In a new terminal
