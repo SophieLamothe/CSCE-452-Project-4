@@ -186,7 +186,7 @@ class HistogramLocalizer(Node):
         self.accumulated_dy -= sy * self.resolution
         
         # Apply motion with diffusion
-        # FIXED: Negate sy because np.roll with positive shift moves DOWN (to higher indices)
+        # Negate sy because np.roll with positive shift moves DOWN (to higher indices)
         # but positive dy means robot moved UP (north), so we need to shift belief UP
         shifted = np.roll(self.belief, shift=(sy, sx), axis=(0, 1))
         
